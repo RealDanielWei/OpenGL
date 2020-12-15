@@ -1,40 +1,52 @@
-
-#include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "GLWrapper.h"
 
 using namespace std;
 
-int main() {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Mywindow", NULL, NULL);
-	if (window == NULL)
-	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
+int main()
+{
+    GLFWwindow* window = GLInit(SCR_WIDTH, SCR_HEIGHT, "App");
+    
+    float vertices[] = {
+     0.5f,  0.5f, 1.0f,  // top right
+     0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left 
+    };
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };
 
-	glViewport(0, 0, 800, 600);
+    
+    Model model = Model();
+    model.loadVertexData(vertices, sizeof(vertices)/sizeof(vertices[0]));
+    model.loadElementData(indices, sizeof(indices) / sizeof(indices[0]));
 
-	while (!glfwWindowShouldClose(window))
-	{
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+    Shader shader = Shader("vshader", "fshader");
+    
+    while (!glfwWindowShouldClose(window))
+    {
+        processInput(window);
 
-	glfwTerminate();
-	return 0;
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
+        shader.use();
+        glBindVertexArray(model.getVAO()); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        //glDrawArrays(GL_TRIANGLES, 0, 6); // set the count to 6 since we're drawing 6 vertices now (2 triangles); not 3!
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+    GLTerminate();
+    return 0;
 }
+
+
+
