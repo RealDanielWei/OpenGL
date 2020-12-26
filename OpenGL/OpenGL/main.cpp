@@ -7,25 +7,29 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 
+
 int main()
 {
     GLFWwindow* window = GLInit(SCR_WIDTH, SCR_HEIGHT, "App");
     
+    float L = 0.5;
+    
     float vertices[] = {
-     0.5f,  0.5f, 1.0f,  // top right
-     0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
+        //front
+        L, 0, 0,    1.0,0.0,0.0,    0.25, 1.0/3,
+        L, L, 0,    0.0,1.0,0.0,    0.25, 2.0/3,
+        0, L, 0,    0.0,0.0,1.0,    0.5,  2.0/3,
+        0, 0, 0,    1.0,0.0,0.0,    0.5,  1.0/3
+        //left
     };
     unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+        0, 1, 3,
+        1, 2, 3
+
     };
 
-    
     Model model = Model();
-    model.loadVertexData(vertices, sizeof(vertices)/sizeof(vertices[0]));
-    model.loadElementData(indices, sizeof(indices) / sizeof(indices[0]));
+    model.load(vertices, sizeof(vertices) / sizeof(vertices[0]), indices, sizeof(indices) / sizeof(indices[0]), "grass_brick.png");
 
     Shader shader = Shader("vshader", "fshader");
     

@@ -15,9 +15,8 @@ class Model {
 public:
 	Model();
 	~Model();
-	void loadVertexData(float* vertices, int length);
-	void loadElementData(unsigned int* indices, int length);
-	void load(float* vertices, int L1, unsigned int* indices, int L2);
+	void addTexture(const char* texture_file);
+	void load(float* vertices, int L1, unsigned int* indices, int L2, const char* texture_file);
 	GLuint getVAO();
 
 private:
@@ -40,6 +39,7 @@ public:
 	void setBool(const std::string& name, bool value) const;
 	void setInt(const std::string& name, int value) const;
 	void setFloat(const std::string& name, float value) const;
+
 };
 
 GLFWwindow* GLInit(unsigned int width, unsigned int height, std::string name);

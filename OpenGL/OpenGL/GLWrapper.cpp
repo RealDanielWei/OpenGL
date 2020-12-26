@@ -1,4 +1,6 @@
 #include "GLWrapper.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 Model::Model()
 {
@@ -18,34 +20,64 @@ Model::~Model()
 	}
 }
 
-void Model::loadVertexData(float* vertices, int length)
+void Model::addTexture(const char* texture_file)
 {
-	glBindVertexArray(this->vao);
-
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	this->vbos.push_back(vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, length * sizeof(vertices[0]), vertices, GL_STATIC_DRAW);
-	//set vertex attribute pointers
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	//reset status
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load and generate the texture
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+	unsigned char* data = stbi_load(texture_file, &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 }
 
-void Model::loadElementData(unsigned int* indices, int length)
+void Model::load(float* vertices, int L1, unsigned int* indices, int L2, const char* texture_file)
 {
 	glBindVertexArray(this->vao);
 
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	this->vbos.push_back(VBO);
 	glGenBuffers(1, &this->ebo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, L1 * sizeof(vertices[0]), vertices, GL_STATIC_DRAW);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, length * sizeof(indices[0]), indices, GL_STATIC_DRAW);
-	//reset status
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, L2 * sizeof(indices[0]), indices, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	// texture coord attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+
+	// load and create a texture 
+	// -------------------------
+	addTexture(texture_file);
+	//unbind 
 	glBindVertexArray(0);
 }
-
 
 GLuint Model::getVAO()
 {
@@ -205,3 +237,4 @@ void Shader::setFloat(const std::string& name, float value) const
 {
 	glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
 }
+
