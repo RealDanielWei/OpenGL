@@ -132,7 +132,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
     <ClInclude Include="GLWrapper.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
